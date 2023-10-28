@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deezer API Example</title>
+</head>
+
+<body>
+  <form id="searchForm">
+    <input type="text" id="songName" placeholder="Enter a song name" />
+    <button type="submit">Search</button>
+  </form>
+  <div id="songResults"></div>
+
+  <script>
+    const searchForm = document.getElementById("searchForm");
+    const songNameInput = document.getElementById("songName");
+    const songResults = document.getElementById("songResults");
+
+    searchForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const songName = songNameInput.value.trim();
+
+      if (songName === "") {
+        return;
+      }
+
+      const url = `https://deezerdevs-deezer.p.rapidapi.com/search?q=${encodeURIComponent(
+        songName
+      )}`;
+      const options = {
+        method: "GET",
+        headers: {
+          'X-RapidAPI-Key': 'bff9f4ce25msh86847fda1773937p1c65dejsn8128c6be375e',
+          'X-RapidAPI-Host': 'deezerdevs-deezer.p.rapidapi.com'
+        },
+      };
+
+      try {
+        const response = await fetch(url, options);
+        const result = await response.json();
+        displayTopResult(result.data);
+      } catch (error) {
+        console.error(error);
+        songResults.innerHTML = "An error occurred. Please try again later.";
+      }
+    });
+
+    function displayTopResult(tracks) {
+      songResults.innerHTML = "";
+
+      if (tracks.length === 0) {
+        songResults.innerHTML = "No results found.";
+        return;
+      }
+
+      // Find the track with the most listens (you can use a different criterion if needed)
+      const topTrack = tracks.reduce((max, track) => {
+        return track.played_total > max.played_total ? track : max;
+      });
+
+      // Print all available information about the top track in the console
+      console.log("Top Track Information:", topTrack);
+
+      const trackName = topTrack.title;
+      const artistName = topTrack.artist.name;
+      const trackPreview = topTrack.preview;
+
+      const player = document.createElement("div");
+      player.innerHTML = `
+            <h2>${trackName}</h2>
+            <p>Artist: ${artistName}</p>
+            <audio controls>
+                <source src="${trackPreview}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        `;
+
+      songResults.appendChild(player);
+    }
+  </script>
+</body>
+
+</html>
